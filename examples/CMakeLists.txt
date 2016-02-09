@@ -1,0 +1,5 @@
+add_executable(test_dynamic test.c)
+add_executable(test_static test.c)
+target_link_libraries(test_static iointercept)
+set_target_properties(test_dynamic PROPERTIES LINK_FLAGS "-dynamic -ldl")
+set_target_properties(test_static PROPERTIES LINK_FLAGS "-Wl,--wrap,close")
