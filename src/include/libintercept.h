@@ -1,10 +1,23 @@
 #ifndef __LIBINTERCEPT_H__
 #define __LIBINTERCEPT_H__
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <unistd.h>
+
+
+#ifdef DEBUG
+#define PRINTD(MSG, ...) fprintf(stderr, "DEBUG %s:%d: " MSG "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+#else
+#define PRINTD(MSG, ...)
+#endif
+
+
 
 #ifdef LIBINTERCEPT_PRELOAD
 #define __USE_GNU
 #include <dlfcn.h>
-#include <stdlib.h>
 
 #define REAL_DECL(func,ret,args) \
     ret (*__real_ ## func)args = NULL;
@@ -31,6 +44,13 @@
 #define MAP_OR_FAIL(func)
 
 #endif
+
+
+
+#define LIBIOINT_ENV_VAR "LIBIOINT_ENV_VAR"
+
+
+extern char *pfs_dir;
 
 REAL_DECL(close, int, (int fd));
 
