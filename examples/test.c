@@ -7,7 +7,7 @@
 int main(int argc, char **argv){
 
     int testfile = 0;
-    if ((testfile = open("testfile", O_WRONLY | O_CREAT | O_TRUNC,
+    if ((testfile = open("./testfile", O_WRONLY | O_CREAT | O_TRUNC,
                         S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1)
     {
             perror("Cannot open output file\n"); exit(1);

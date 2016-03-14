@@ -37,8 +37,16 @@ int WRAP_DECL(close)(int fd){
         /* We know path can't be that big */
         char path[255];
         sprintf(path,"/proc/self/fd/%i",fd);
-        filename = readlink_malloc((const char *)path);
-        printf("%s---%s\n",path,filename);
+        if ((filename = readlink_malloc((const char *)path)) != NULL){
+            PRINTD("File-path:%s\n",filename);
+            //Extracted Filename now check that path aligns with our persist directory
+            if (!strncmp(LIBIOINT_PERSIST_DIR,filename,strlen(LIBIOINT_PERSIST_DIR)))
+            {
+                printf("This matches\n");
+            }else{
+                printf("This does not\n");
+            }
+        }
     }
 
 

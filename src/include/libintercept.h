@@ -49,6 +49,9 @@
 
 #define LIBIOINT_ENV_VAR "LIBIOINT_ENV_VAR"
 
+#ifndef LIOIOINT_PERSIST_DIR
+#define LIBIOINT_PERSIST_DIR "/tmp/"
+#endif
 
 extern char *pfs_dir;
 
