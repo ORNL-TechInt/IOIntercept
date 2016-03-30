@@ -11,7 +11,7 @@ int main(int argc, char **argv){
 
     spawn_bb_proxy();
 
-    if ((testfile = open("/tmp/persist/a/b/testfile", O_WRONLY | O_CREAT | O_TRUNC,
+    if ((testfile = open("/tmp/testfile", O_WRONLY | O_CREAT | O_TRUNC,
                         S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1)
     {
             perror("Cannot open output file\n"); exit(1);

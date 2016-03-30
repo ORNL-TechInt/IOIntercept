@@ -40,6 +40,8 @@ typedef struct {
 void *bb_proxy_func(void *arg);
 void spawn_bb_proxy();
 void term_bb_proxy();
+void spawn_bb_proxy_();
+void term_bb_proxy_();
 void bb_bind_cpu();
 
 //Emulation of BBAPI 

@@ -15,7 +15,7 @@ int BB_CreateTransferDef(BBTransferDef_t **xfer){
 int BB_AddFiles(BBTransferDef_t *xfer, char *src, char *dest, int flags){
     if (src == NULL || dest == NULL){
         printf("Invalid arguments specified\n");
-        return;
+        return -1;
     }
 
     if (xfer->trans_list == NULL){

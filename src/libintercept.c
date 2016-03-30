@@ -4,13 +4,11 @@
 char *readlink_malloc (const char *filename);
 
 char *pfs_dir = NULL;
-bool early_term = false;
-
-
 
 int WRAP_DECL(close)(int fd){
 
     char *dest = NULL;
+    bool early_term = false;
 
     if (!early_term && !pfs_dir){
         pfs_dir = getenv(LIBIOINT_ENV_VAR);
@@ -104,8 +102,7 @@ int WRAP_DECL(close)(int fd){
          * contributor list is ignored. I think that should satisfy Scott's
          * file close scenario.  for now with tag, I'm just going to use FD but
          * we probably do need implement a static counter???  
-        */
-
+         */
         if (BB_StartTransfer(fd, 1, NULL, xfer, NULL) < 0){
             perror("Failed to start transfer\n");
         }
@@ -115,7 +112,7 @@ int WRAP_DECL(close)(int fd){
 }
 
 
-        
+
 char *readlink_malloc (const char *filename)
 {
     int size = 100;
@@ -138,7 +135,7 @@ char *readlink_malloc (const char *filename)
                this means you have a slot available to stash your null terminator.
 
                Hooray.             
-             */
+               */
             buffer[nchars] = '\0';               
             return buffer;
         }

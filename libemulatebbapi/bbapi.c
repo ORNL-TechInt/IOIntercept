@@ -29,6 +29,9 @@ static void _mkdir(const char *dir) {
         }
 }
 
+void spawn_bb_proxy_(){
+    spawn_bb_proxy();
+}
 
 void spawn_bb_proxy(){
        bb_proxy_thread = (pthread_t *)malloc(sizeof(pthread_t)); 
@@ -55,6 +58,9 @@ void spawn_bb_proxy(){
        pthread_create(bb_proxy_thread,NULL, bb_proxy_func, NULL); 
 }
 
+void term_bb_proxy_(){
+    term_bb_proxy();
+}
 
 void term_bb_proxy(){
     bool waiting_to_signal = true;
@@ -109,13 +115,12 @@ void *bb_proxy_func(void *arg){
         }
     }
 
-
     return NULL;
 }
 
 
 void move_file(char *src, char *dest){
-    sync();
+    //sync();
     if (src == NULL || dest == NULL){
         return;
     }
@@ -126,7 +131,6 @@ void move_file(char *src, char *dest){
     int ofd = 0;
     char buf[4096];
     ssize_t bytes_read = 0;
-
     if ((ifd=open(src, O_RDONLY) ) == -1){
         fprintf(stderr,"infile %s \n",(strerror(errno)));
         exit(-1);
@@ -152,7 +156,7 @@ void move_file(char *src, char *dest){
            It was opened for reading.
            If we close it.. the close call will be intercepted and generate a new
            transfer out of this directory
-           
+
            This is just testing code anyway.
            */
         close(ofd);
@@ -164,7 +168,7 @@ void move_file(char *src, char *dest){
 void bb_bind_cpu(){
     cpu_set_t mask;
     CPU_ZERO(&mask);
-    CPU_SET(0,&mask);
+    CPU_SET(15,&mask);
     sched_setaffinity(0, sizeof(cpu_set_t), &mask);
 }
 
@@ -202,7 +206,7 @@ int enqueue_work(uint64_t tag, uint32_t num_contrib, uint32_t *contrib, BBTransf
         wqtail = temp;
     } 
     pthread_mutex_unlock(wqtex);
-
     pthread_cond_signal(cond);
+    return 0;
 }
 
