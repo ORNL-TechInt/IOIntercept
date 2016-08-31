@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <string.h>
-
+#include <errno.h>
 #ifdef DEBUG
 #define PRINTD(MSG, ...) fprintf(stderr, "DEBUG %s:%d: " MSG "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 #else
@@ -47,11 +47,12 @@
 
 
 
-#define LIBIOINT_ENV_VAR "LIBIOINT_ENV_VAR"
+#define LIBIOINT_PFS_DIR "PFS_DIR"
 
-#define LIBIOINT_PERSIST_DIR "/tmp/persist/"
+#define LIBIOINT_PERSIST_DIR "PERSIST_DIR"
 
 extern char *pfs_dir;
+extern char *persist_dir;
 
 REAL_DECL(close, int, (int fd));
 

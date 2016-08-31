@@ -3,7 +3,6 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <sys/stat.h>
-#include <bbapi.h>
 #include <errno.h>
 int main(int argc, char **argv){
 
@@ -12,13 +11,16 @@ int main(int argc, char **argv){
     int thread_level;
     char filename[255];
 
-    spawn_bb_proxy();
 
+#ifdef TITAN
     MPI_Init_thread(&argc,&argv, MPI_THREAD_FUNNELED, &thread_level);
 
     if (thread_level != MPI_THREAD_FUNNELED){
         MPI_Finalize();
     }
+#else
+    MPI_Init(&argc,&argv);
+#endif
     
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
@@ -36,7 +38,6 @@ int main(int argc, char **argv){
 
     sleep(3);
 
-    term_bb_proxy();
     MPI_Finalize();
     return 0;
 

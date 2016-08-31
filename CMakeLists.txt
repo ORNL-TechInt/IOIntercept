@@ -7,7 +7,6 @@ option(DEBUG "Option description" OFF)
 
 
 set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)
-set(CMAKE_C_COMPILER "cc")
 set(CMAKE_C_FLAGS "-g -O2")
 
 if(DEBUG)

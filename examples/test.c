@@ -3,18 +3,19 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <sys/stat.h>
-#include <bbapi.h>
 #include <errno.h>
 int main(int argc, char **argv){
-
     int testfile = 0;
 
-    spawn_bb_proxy();
+    char *srcdir = argv[1];
+    char tfn[256];
 
-    if ((testfile = open("/tmp/testfile", O_WRONLY | O_CREAT | O_TRUNC,
-                        S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1)
+    snprintf(tfn,sizeof(tfn), "%s/testfile.%d", srcdir,getpid());
+
+    if ((testfile = open(tfn, O_WRONLY | O_CREAT | O_TRUNC,
+		    S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1)
     {
-            perror("Cannot open output file\n"); exit(1);
+	perror("Cannot open output file\n"); exit(1);
     }
 
     write(testfile,"test",5);
@@ -22,8 +23,6 @@ int main(int argc, char **argv){
     close(testfile);
 
     sleep(3);
-    
-    term_bb_proxy();
-    return 0;
 
+    return 0;
 }
