@@ -10,9 +10,9 @@ set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)
 
 if(DEBUG)
   add_definitions(-DDEBUG)
-  set(CMAKE_C_FLAGS "-g")
+  set(CMAKE_C_FLAGS "-g -Werror")
 else()
-  set(CMAKE_C_FLAGS "-g -O2")
+  set(CMAKE_C_FLAGS "-g -O2 -Werror")
 endif()
 
 add_subdirectory(src)

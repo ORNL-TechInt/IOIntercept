@@ -4,6 +4,9 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <string.h>
 
 #ifdef TITAN
 #include "bbapi.h"
@@ -15,7 +18,7 @@ int main(int argc, char **argv){
     int rank = 0;
     int thread_level;
     char filename[255];
-    char *srcdir = argv[1];
+    char *srcdir = getenv("PERSIST_DIR");
 
 #ifdef TITAN
     MPI_Init_thread(&argc,&argv, MPI_THREAD_FUNNELED, &thread_level);
@@ -26,7 +29,7 @@ int main(int argc, char **argv){
 #else
     MPI_Init(&argc,&argv);
 #endif
-    
+
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
     snprintf(filename,sizeof(filename),"%s/testfile.%d", srcdir ,rank);
@@ -41,8 +44,8 @@ int main(int argc, char **argv){
 
     close(testfile);
 
-#ifdef TITAN
     sleep(3);
+#ifdef TITAN
     term_bb_proxy();
 #endif
     MPI_Finalize();
