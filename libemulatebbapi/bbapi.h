@@ -12,6 +12,9 @@
 #include <errno.h>
 #include <fcntl.h>
 
+#define BBAPI_CLIENTVERSIONSTR 1.0
+
+typedef uint32_t BBTag;
 //New and Fun Data Types
 typedef struct {
     char *src;
@@ -19,13 +22,23 @@ typedef struct {
     struct transfer_list_t *next;
 } transfer_list_t;
 
-
 typedef struct {
     transfer_list_t *trans_list;
 }BBTransferDef_t;
 
 typedef struct {
+    BBTag tag;
+    uint64_t numcontrib;
+    uint32_t *contrib;
 }BBTransferHandle_t;
+
+enum BBERRORFORMAT
+{
+    BBERRORJSON   = 1,   ///< Output string will be in JSON format
+    BBERRORXML    = 2,   ///< Output string will be in XML format
+    BBERRORFLAT   = 3    ///< Output string will be in a non-hierarchical name value format
+};
+typedef enum BBERRORFORMAT BBERRORFORMAT;
 
 typedef struct {
     BBTransferDef_t *work_item;
@@ -47,7 +60,7 @@ void bb_bind_cpu();
 //Emulation of BBAPI 
 int BB_CreateTransferDef(BBTransferDef_t **);
 int BB_AddFiles(BBTransferDef_t *, char *, char *, int);
-int BB_StartTransfer(uint64_t, uint32_t, uint32_t*, BBTransferDef_t *, BBTransferHandle_t *);
+int BB_StartTransfer(BBTransferDef_t *, BBTransferHandle_t);
 int BB_FreeTransferDef(BBTransferDef_t *);
 
 //Internal functions

@@ -3,19 +3,24 @@ cmake_minimum_required(VERSION 2.6)
 
 
 option(DEBUG "Option description" OFF)
-
+option(TITAN "Build for Titan use Emulation" OFF)
 
 
 set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)
-set(CMAKE_C_FLAGS "-g -O2")
 
 if(DEBUG)
   add_definitions(-DDEBUG)
+  set(CMAKE_C_FLAGS "-g")
+else()
+  set(CMAKE_C_FLAGS "-g -O2")
 endif()
 
 add_subdirectory(src)
 
+if (TITAN)
 add_subdirectory(libemulatebbapi)
+add_definitions(-DTITAN)
+endif()
 
 add_subdirectory(examples)
 

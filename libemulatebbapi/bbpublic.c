@@ -1,5 +1,22 @@
 #include "bbapi.h"
 
+int BB_InitLibrary(uint32_t contribID, const char *clientVersion){
+	//*Stub do nothing*//
+	return 0;
+}
+
+int BB_TerminateLibrary(){
+	//*Stub do nothing*//
+}
+
+int BB_GetTransferHandle(BBTag tag, uint64_t numcontrib, uint32_t contrib[], BBTransferHandle_t* handle){
+	handle->tag = tag;
+	handle->numcontrib = numcontrib;
+	handle->contrib = contrib;
+	return 0;
+}
+
+
 int BB_CreateTransferDef(BBTransferDef_t **xfer){
     *xfer = (BBTransferDef_t*)malloc(sizeof(BBTransferDef_t));
 
@@ -32,9 +49,9 @@ int BB_AddFiles(BBTransferDef_t *xfer, char *src, char *dest, int flags){
     return 0;
 }
 
-int BB_StartTransfer(uint64_t tag, uint32_t num_contrib, uint32_t *contrib, BBTransferDef_t *xfer, BBTransferHandle_t *handle){
+int BB_StartTransfer(BBTransferDef_t *xfer, BBTransferHandle_t handle){
     /* Does only one rank execute start transfer? Need to clarify this */
-    enqueue_work(tag,num_contrib, contrib, xfer, handle, false);
+    enqueue_work(handle.tag,handle.numcontrib, handle.contrib, xfer, &handle, false);
     return 0;
 }
 
@@ -43,4 +60,3 @@ int BB_FreeTransferDef(BBTransferDef_t *xfer){
 
     return 0;
 }
-

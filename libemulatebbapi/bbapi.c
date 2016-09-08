@@ -210,3 +210,6 @@ int enqueue_work(uint64_t tag, uint32_t num_contrib, uint32_t *contrib, BBTransf
     return 0;
 }
 
+int BB_GetLastErrorDetails(BBERRORFORMAT format, char **errstring){
+
+}

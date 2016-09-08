@@ -1,5 +1,10 @@
 #include "libintercept.h"
+
+#ifdef TITAN
+#include <bbapi.h>
+#else
 #include <bb/include/bbapi.h>
+#endif
 
 char *readlink_malloc (const char *filename);
 
@@ -62,7 +67,7 @@ int WRAP_DECL(close)(int fd){
 	    /* Your path must write to the persist dir directly
 	     * right now won't work if it doesn't start with /ssd/persist/ it won't
 	     * get written */
-	    if (!strncmp(persist_dir,filename,strlen(LIBIOINT_PERSIST_DIR)))
+	    if (strncmp(persist_dir,filename,strlen(persist_dir)) == 0)
 	    {
 		//Grab portion that's not the ssd persist stuff
 		int strdelta = strlen(filename) - strlen(LIBIOINT_PERSIST_DIR);
