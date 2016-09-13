@@ -8,7 +8,7 @@
 #include <stdbool.h>
 #include <sys/types.h>
 #include <unistd.h>
-
+#include <stdint.h>
 #include <openssl/md5.h>
 
 #ifdef TITAN
@@ -34,11 +34,15 @@ char *file_md5(char *filename){
     return temp;
 }
 
- /* Persist File
+/* Persist File
  * Intercept and drain
- * Measure MD5Sum
+ * Compare src and dst md5 values
+ * 
+ * Input parameter file size in KB
+ * Writes are performed in 4K chunks
+ * size is rounded down
  */
-bool simple_file_test(){
+bool simple_file_test(uint32_t filesize){
     char *srcdir = getenv("PERSIST_DIR");
     char *destdir = getenv("PFS_DIR");
     char tfn[256];
@@ -48,11 +52,15 @@ bool simple_file_test(){
     int buffer4k[1024];
     int testfile = 0;
 
+    /* Determine looping counts*/
+    int loop_count = (filesize * 1024) / 4096;
+
+
     /* Seed random num gen */
     srand(time(NULL));
 
-    snprintf(tfn,sizeof(tfn), "%s/testfile.%d", srcdir,getpid());
-    snprintf(dfn,sizeof(tfn), "%s/testfile.%d", destdir,getpid());
+    snprintf(tfn,sizeof(tfn), "%s/testfile.%d.%d", srcdir,getpid(),filesize);
+    snprintf(dfn,sizeof(tfn), "%s/testfile.%d.%d", destdir,getpid(),filesize);
 
     if ((testfile = open(tfn, O_WRONLY | O_CREAT | O_TRUNC,
                     S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1)
@@ -60,7 +68,7 @@ bool simple_file_test(){
         perror("Cannot open output file\n"); exit(1);
     }
 
-    for (int lcv = 0;lcv < 32;lcv++){
+    for (int lcv = 0;lcv < loop_count;lcv++){
         for (int lcv2 = 0; lcv2 < 1024;lcv2++){
             buffer4k[lcv2] = rand();
         }
@@ -72,7 +80,7 @@ bool simple_file_test(){
 
     char *srcmd5 = file_md5(tfn);
     char *destmd5 = file_md5(dfn);
-    
+
     for (int lcv = 0;lcv < MD5_DIGEST_LENGTH; lcv++){
         if (srcmd5[lcv] != destmd5[lcv])
         {
@@ -96,10 +104,25 @@ int main(int argc, char **argv){
     spawn_bb_proxy();	    
 #endif
 
-    if (!simple_file_test()){
+    //128K
+    if (!simple_file_test(128)){
         perror("Failed simple_file_test validation");
     }
 
+    //128K
+    if (!simple_file_test(256)){
+        perror("Failed simple_file_test validation");
+    }
+
+    //128K
+    if (!simple_file_test(512)){
+        perror("Failed simple_file_test validation");
+    }
+
+    //128K
+    if (!simple_file_test(1024)){
+        perror("Failed simple_file_test validation");
+    }
 
 #ifdef TITAN
     term_bb_proxy();

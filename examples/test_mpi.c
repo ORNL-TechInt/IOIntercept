@@ -12,6 +12,10 @@
 #include "bbapi.h"
 #endif
 
+#ifdef DEBUG
+extern int gethostname(char *name, size_t len);
+#endif
+
 int main(int argc, char **argv){
 
     int testfile = 0;
@@ -19,6 +23,16 @@ int main(int argc, char **argv){
     int thread_level;
     char filename[255];
     char *srcdir = getenv("PERSIST_DIR");
+
+#ifdef DEBUG
+    int i = 0;
+    char hostname[256];
+    gethostname(hostname, sizeof(hostname));
+    printf("PID %d on %s ready for attach\n", getpid(), hostname);
+    fflush(stdout);
+    while (0 == i)
+        sleep(5);
+#endif
 
 #ifdef TITAN
     MPI_Init_thread(&argc,&argv, MPI_THREAD_FUNNELED, &thread_level);
