@@ -43,8 +43,8 @@ char *file_md5(char *filename){
  * size is rounded down
  */
 bool simple_file_test(uint32_t filesize){
-    char *srcdir = getenv("PERSIST_DIR");
-    char *destdir = getenv("PFS_DIR");
+    char *srcdir = getenv("INTERCEPT_PERSIST_DIR");
+    char *destdir = getenv("INTERCEPT_PFS_DIR");
     char tfn[256];
     char dfn[256];
     char cmd[256];
@@ -75,53 +75,22 @@ bool simple_file_test(uint32_t filesize){
         write(testfile, (void *)buffer4k, 4096);
     }
     close(testfile);
-
-    sleep(3);
-
-    char *srcmd5 = file_md5(tfn);
-    char *destmd5 = file_md5(dfn);
-
-    for (int lcv = 0;lcv < MD5_DIGEST_LENGTH; lcv++){
-        if (srcmd5[lcv] != destmd5[lcv])
-        {
-            return false;
-        }
-    }
-
-    if (srcmd5)
-        free(srcmd5);
-
-    if (destmd5)
-        free(destmd5);
-
-
+    sleep(2);
     return true;
 }
 
 
 int main(int argc, char **argv){
+    int runcnt = atoi(argv[1]);
 #ifdef TITAN
     spawn_bb_proxy();	    
 #endif
 
     //128K
-    if (!simple_file_test(128)){
-        perror("Failed simple_file_test validation");
-    }
-
-    //128K
-    if (!simple_file_test(256)){
-        perror("Failed simple_file_test validation");
-    }
-
-    //128K
-    if (!simple_file_test(512)){
-        perror("Failed simple_file_test validation");
-    }
-
-    //128K
-    if (!simple_file_test(1024)){
-        perror("Failed simple_file_test validation");
+    for (int lcv = 0; lcv < runcnt; lcv ++ ){
+        if (!simple_file_test(128)){
+            perror("Failed simple_file_test validation");
+        }
     }
 
 #ifdef TITAN

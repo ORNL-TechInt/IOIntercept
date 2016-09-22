@@ -33,7 +33,7 @@ set_target_properties(test_dynamic PROPERTIES LINK_FLAGS "-dynamic -lssl -lcrypt
 set_target_properties(test_mpi_static PROPERTIES LINK_FLAGS "-Wl,--wrap,close -lssl -lcrypto")
 set_target_properties(test_static PROPERTIES LINK_FLAGS "-Wl,--wrap,close -lssl -lcrypto")
 else()
+set_target_properties(test_static PROPERTIES LINK_FLAGS "-Wl,--wrap,close -Wl,--rpath /opt/ibm/bb/lib -L/opt/ibm/bb/lib -lbbAPI -lssl -lcrypto")
 set_target_properties(test_dynamic PROPERTIES LINK_FLAGS "-dynamic -ldl -Wl,--rpath /opt/ibm/bb/lib -L/opt/ibm/bb/lib -lbbAPI -lssl -lcrypto")
 set_target_properties(test_mpi_static PROPERTIES LINK_FLAGS "-Wl,--wrap,close -Wl,--rpath /opt/ibm/bb/lib -L/opt/ibm/bb/lib -lbbAPI -lssl -lcrypto")
-set_target_properties(test_static PROPERTIES LINK_FLAGS "-Wl,--wrap,close -Wl,--rpath /opt/ibm/bb/lib -L/opt/ibm/bb/lib -lbbAPI -lssl -lcrypto")
 endif()

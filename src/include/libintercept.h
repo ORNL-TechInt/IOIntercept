@@ -8,15 +8,12 @@
 #include <string.h>
 #include <errno.h>
 
+
 #ifdef TITAN
 #include <bbapi.h>
 #else
 #include <bb/include/bbapi.h>
 #endif
-
-
-
-
 
 #ifdef DEBUG
 #define PRINTD(MSG, ...) fprintf(stderr, "DEBUG %s:%d: " MSG "\n", __FILE__, __LINE__, ##__VA_ARGS__)
@@ -24,6 +21,9 @@
 #define PRINTD(MSG, ...)
 #endif
 
+#define PFS_DIR "INTERCEPT_PFS_DIR"
+#define PERSIST_DIR "INTERCEPT_PERSIST_DIR"
+#define MANAGE_FILES "INTERCEPT_MANAGE_FILES"
 
 
 #ifdef LIBINTERCEPT_PRELOAD
@@ -53,28 +53,28 @@
 #define WRAP_DECL(__name) __wrap_ ## __name
 
 #define MAP_OR_FAIL(func)
-
 #endif
 
-
-#define LIBIOINT_PFS_DIR "PFS_DIR"
-
-#define LIBIOINT_PERSIST_DIR "PERSIST_DIR"
-
+// Handle list struct 
 typedef struct {
     BBTransferHandle_t handle;
+    BBTransferDef_t *xfer;
     void *next;
 } handle_list_t;
 
-extern char *pfs_dir;
-extern char *persist_dir;
-extern handle_list_t *head;
+//Global variables
+char *pfs_dir;
+char *persist_dir;
+handle_list_t *handle_list;
+handle_list_t *tail;
 
+//Function Prototypes
 REAL_DECL(close, int, (int fd));
-
 int WRAP_DECL(close)(int fd);
-
-extern int Intercept_ExtractFilenames(int fd, char **, char **);
-extern void Intercept_StartTransfer(char *, char *);
-
+char *readlink_malloc (const char *filename);
+void Intercept_ManageFiles();
+int Intercept_ExtractFilenames(int fd, char **, char **);
+void Intercept_StartTransfer(char *, char *);
+int Intercept_StoreHandle(BBTransferHandle_t, BBTransferDef_t *);
+int Intercept_RemoveHandle(BBTransferHandle_t);
 #endif
