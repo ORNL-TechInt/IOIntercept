@@ -1,0 +1,84 @@
+&input_parameters
+
+! control parameters
+  irun=0		! 0 for initial run, any non-zero value for restart
+  mstep=80		! # of ion and field time steps
+  msnap=20		! # of snapshots and restarts
+  ndiag=2		! do diagnosis when mod(istep,ndiag)=0
+  nonlinear=1		! 1: nonlinear run; 0: linear run
+  paranl=0.0		! 0: no parallel nonlinearity; 1: keep parallel nonlinearity 
+  mode00=1		! 1: include (0,0) mode, 0: exclude (0,0) mode
+  tstep=0.15		! time step size, unit=R_0/c_s
+  track_particles=0	! 0: no tracking; 1: track particles 
+  ndata3D=0		! 0: no 3D data; 1: write out 3D field data 
+  magnetic=0		! 0: electrostatic; 1: electromagnetic
+  nbound=4		! # of radial subjected to boundary condition
+  iload=0		! 0: uniform marker temperature, 1: non-uniform marker
+  numereq=0		! 0: analytic equilibrium, 1: numerical equilibrium
+  nfilter=0             ! 0: keep all toroidal modes, 1: keep toroidal modes specified in setup.F90
+
+! field grids
+  mpsi=90 		! # of radial grid points
+  mthetamax=320 	! # poloidal grid points
+  mtoroidal=672		! # of toroidal grids=MPI DD, 64 needed for ITG linear dispersion
+  aminor=0.358		! minor radius, unit=R_0
+  a0=0.1		! inner boundary, unit=a
+  a1=0.9		! outer boundary, unit=a
+
+! ion
+  micell=100		! particle per cell for ion
+  aion=1.0		! ion mass, unit=proton mass
+  qion=1.0		! ion charge, unit=proton charge
+  ngyroi=4		! N-point gyro-averaging, N=1, 4, or 8
+  denion=1.0		! on-axis ion density, unit=n_e
+  temion=1.0		! on-axis ion temperature, unit=T_
+  tauii=-1.0		! -1.0: no collisions, 1.0: collisions
+
+! electron
+  mecell=100		! particle per cell for electron
+  nhybrid=0	         ! order of fluid-kinetic hybrid electron model
+  ncycle=0		! # of electron subcycle
+  qelectron=-1.0 	! ion charge, unit=proton charge
+  aelectron=5.44366e-4	! electron mass, unit=proton mass
+
+! physical unit
+  r0=279.6		! major radius, unit=cm
+  b0=19100.0		! on-axis magnetic field, unit=gauss
+  etemperature=2500.0	! on-axis electron temperature, unit=ev
+  edensity=1.460e14  	! on-axis electron number density, unit=1/cm^3
+
+! temporary parameters (will be removed in general geometry version)
+  kappati=2.2		! grad T_i/T_i, unit=1/R_0
+  kappate=4.0		! grad T_e/T_i, unit=1/R_0
+  kappan=2.2		! grad n_e/n_i, unit=1/R_0
+  rc=0.5		! kappa=exp{-[(r-rc)/rw]**6}
+  rw=0.4	 	! rc in unit of (a1+a0) and rw in unit of (a1-a0)
+
+  q0=0.581		! q_profile, q=q0 + q1*r/a + q2 (r/a)^2
+  q1=1.092
+  q2=1.092
+/
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+! GTC unit: R_0=1, Omega_proton=1, B_0=1, m_i=1, e=1.
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+! T_i=T_e, a_ion=1 assumed in this version; change mode # in setup.F90 for linear run.
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+! VERY IMPORTANT: make sure that multiple OpenMP threads produce identical output in 
+! gtc.out as with a single Openmp thread (up to 6 digits in single precision).
+!
+! Mistakes open occur in substructure within Openmp loop: array operation, 
+! external function (e.g. cshift) and subroutine call (i.e., fft).
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+! repeatibility in linear runs:
+! 1) Random # generator in loading is the only source for different output in gtc.out.
+! 2) Particle decomposition # leads to difference in ~3 digits due to random # generator.
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
