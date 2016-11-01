@@ -15,4 +15,4 @@ mkdir -p trackp_dir
 export OMP_NUM_THREADS=4
 export LD_LIBRARY_PATH=/root/shared/cjzimmer-bbapi/gtc-support/hdf5-1.8.17/hdf5/lib/:/usr/local/lib
 
-mpirun --allow-run-as-root -np 1 -d 4 ./gtc
+mpirun --allow-run-as-root -np 4 ./gtc

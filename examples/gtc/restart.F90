@@ -191,8 +191,7 @@ subroutine restart_native(iop)
 
 !!XY rolling restart: save two copies of restart data
   if(mod(irest,2)==0)then
-     !restart_fname="restart_dir1/"//trim(cdum)
-     restart_fname="/tmp/persist/"//trim(cdum)
+     restart_fname="restart_dir1/"//trim(cdum)
   else
      restart_fname="restart_dir2/"//trim(cdum)
   endif
