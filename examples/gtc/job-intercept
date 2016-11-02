@@ -1,0 +1,20 @@
+#!/bin/bash
+rp=/mnt/bblv_57/gtc_`date +%s`
+mkdir -p $rp
+cp gtc $rp
+cp gtc.in $rp
+
+pushd $rp
+mkdir -p restart_dir1
+mkdir -p restart_dir2
+mkdir -p restart_dir
+
+mkdir -p phi_dir
+mkdir -p trackp_dir
+
+export PFS_DIR=/root/shared/cjzimmer-bbapi/scratch/
+export PERSIST_DIR=$rp/restart_dir1
+export OMP_NUM_THREADS=4
+export LD_LIBRARY_PATH=/root/shared/cjzimmer-bbapi/gtc-support/hdf5-1.8.17/hdf5/lib/:/usr/local/lib
+
+mpirun --allow-run-as-root -x LD_PRELOAD=/usr/local/lib/libiointercept.so -np 4 ./gtc

@@ -5,14 +5,14 @@ int check(int rc)
 {
     if(rc)
     {
-        char* errstring;
-        BB_GetLastErrorDetails(BBERRORJSON, &errstring);
-        printf("Error rc:       %d\n", rc);
-        printf("Error details:  %s\n", errstring, errstring);
-        free(errstring);
+	char* errstring;
+	BB_GetLastErrorDetails(BBERRORJSON, &errstring);
+	printf("Error rc:       %d\n", rc);
+	printf("Error details:  %s\n", errstring, errstring);
+	free(errstring);
 
-        printf("Aborting due to failures\n");
-        exit(-1);
+	printf("Aborting due to failures\n");
+	exit(-1);
     }
 }
 
@@ -28,32 +28,27 @@ int WRAP_DECL(close)(int fd){
 
     if (!early_term && !pfs_dir)
     {
-        pfs_dir = getenv(PFS_DIR);
-        persist_dir = getenv(PERSIST_DIR);
+
+	pfs_dir = getenv(PFS_DIR);
+	persist_dir = getenv(PERSIST_DIR);
 	mf_env = getenv(MANAGE_FILES);
 
-        if (mf_env && strcmp(mf_env,"1") == 0){
-            manage_files =  true;
-        }
+	if (mf_env && strcmp(mf_env,"1") == 0){
+	    manage_files =  true;
+	}
 
-        if (!pfs_dir || !persist_dir)
-        {
-            printf("Please set PFS_DIR and PERSIST_DIR. You will need to manually extract your files upon application termination\n");
-            early_term = true;
-        }
-        else
-        {
-            rc = BB_InitLibrary(getpid(),BBAPI_CLIENTVERSIONSTR);
-            check(rc);
-        }
+	if (!pfs_dir || !persist_dir)
+	{
+	    printf("Please set PFS_DIR and PERSIST_DIR. You will need to manually extract your files upon application termination\n");
+	    early_term = true;
+	}
     }
 
 
     if (Intercept_ExtractFilenames(fd, &src, &dest) < 0)
     {
-        early_term = true;
+	early_term = true;
     }
-
 
     /*
      * If linked dynamically there is no __real_close -- 
@@ -70,8 +65,8 @@ int WRAP_DECL(close)(int fd){
     int ret = 0;
     if ((ret = __real_close(fd)) != 0)
     {
-        fprintf(stderr,"%s\n",strerror(errno));
-        return ret;
+	fprintf(stderr,"%s\n",strerror(errno));
+	return ret;
     }
 
     /*
@@ -80,7 +75,7 @@ int WRAP_DECL(close)(int fd){
      */
     if (manage_files)
     {
-        Intercept_ManageFiles();
+	Intercept_ManageFiles();
     }
 
 
@@ -91,15 +86,15 @@ int WRAP_DECL(close)(int fd){
      */
     if (!early_term)
     {
-        Intercept_StartTransfer(src, dest);
+	Intercept_StartTransfer(src, dest);
     } 
 
     if (dest){
-        free(dest);
+	free(dest);
     }
 
     if (src){
-        free(src);
+	free(src);
     }
 
     return ret;
@@ -112,46 +107,45 @@ void Intercept_ManageFiles(){
     itr = handle_list;
     while (itr)
     {
-        BB_GetTransferInfo(itr->handle, &info);
-        if (info.status == BBFULLSUCCESS){
-            handle_list_t *tmp = itr;
-            itr=itr->next;
-            BB_FreeTransferDef(tmp->xfer);
-            Intercept_RemoveHandle(tmp->handle);
-        }
+	BB_GetTransferInfo(itr->handle, &info);
+	if (info.status == BBFULLSUCCESS){
+	    handle_list_t *tmp = itr;
+	    itr=itr->next;
+	    BB_FreeTransferDef(tmp->xfer);
+	    Intercept_RemoveHandle(tmp->handle);
+	}
     }
 }
 
 int Intercept_ExtractFilenames(int fd, char **src, char **dest){
     //TODO If PROCFS ever disapears we'll have to change this.
     if (!access("/proc/self/fd",X_OK)) {
-        /* We know path can't be that big */
-        char path[255];
-        sprintf(path,"/proc/self/fd/%i",fd);
-        if (((*src) = readlink_malloc((const char *)path)) != NULL){
-            //Extracted Filename now check that path aligns with our persist directory
-            /* Your path must write to the persist dir directly
-             * right now won't work if it doesn't start with /ssd/persist/ it won't
-             * get written */
-            if (strncmp(persist_dir,*src,strlen(persist_dir)) == 0)
-            {
-                //Grab portion that's not the ssd persist stuff
-                int strdelta = strlen(*src) - strlen(persist_dir);
-                char *ptr = *src;
-                ptr = ptr + strlen(persist_dir);
+	/* We know path can't be that big */
+	char path[255];
+	sprintf(path,"/proc/self/fd/%i",fd);
+	if (((*src) = readlink_malloc((const char *)path)) != NULL){
+	    //Extracted Filename now check that path aligns with our persist directory
+	    /* Your path must write to the persist dir directly
+	     * right now won't work if it doesn't start with /ssd/persist/ it won't
+	     * get written */
+	    if (strncmp(persist_dir,*src,strlen(persist_dir)) == 0)
+	    {
+		//Grab portion that's not the ssd persist stuff
+		int strdelta = strlen(*src) - strlen(persist_dir);
+		char *ptr = *src;
+		ptr = ptr + strlen(persist_dir);
 
-                //Gotta account for \0
-                //There better be a slash on the pfs_dir
-                int destsize = strlen(pfs_dir) + strlen(ptr)+1;
-                *dest = (char *)malloc(destsize * sizeof(char));
-                strncpy(*dest,pfs_dir,strlen(pfs_dir) + 1);
-                strncat(*dest,ptr,strdelta);
-            }else{
-                return 0;
-            }	
-        }
+		//Gotta account for \0
+		//There better be a slash on the pfs_dir
+		int destsize = strlen(pfs_dir) + strlen(ptr)+1;
+		*dest = (char *)malloc(destsize * sizeof(char));
+		strncpy(*dest,pfs_dir,strlen(pfs_dir) + 1);
+		strncat(*dest,ptr,strdelta);
+		return 1;
+	    }
+	}
     }
-    return 1;
+    return -1;
 }
 
 /*
@@ -171,8 +165,12 @@ void Intercept_StartTransfer(char *src, char *dest){
     BBTransferInfo_t info;
 
     if (pid == 0){
-        pid = getpid();
+	pid = getpid();
+	rc = BB_InitLibrary(pid,BBAPI_CLIENTVERSIONSTR);
+	check(rc);
     }
+
+
 
     int tag = (pid << 16) | (tagctr++);
 
@@ -198,7 +196,7 @@ int Intercept_StoreHandle(BBTransferHandle_t handle, BBTransferDef_t *xfer){
     /* Function invariant tail will always enter and exit being NULL */
     handle_list_t *tmp =  (handle_list_t*)malloc(sizeof(handle_list_t));
     if (!tmp){
-        return -1;
+	return -1;
     }
     tmp->handle = handle;
     tmp->xfer = xfer;
@@ -206,12 +204,12 @@ int Intercept_StoreHandle(BBTransferHandle_t handle, BBTransferDef_t *xfer){
 
     /* if tail is null so is head */
     if (tail == NULL){
-        tail = tmp;
-        handle_list = tail;
+	tail = tmp;
+	handle_list = tail;
     }else
     {
-        tail->next = tmp;
-        tail = tail->next;
+	tail->next = tmp;
+	tail = tail->next;
     }
 
     return 1;
@@ -220,16 +218,16 @@ int Intercept_StoreHandle(BBTransferHandle_t handle, BBTransferDef_t *xfer){
 int Intercept_RemoveHandle(BBTransferHandle_t handle){
     /* Sanity */
     if (handle_list && handle_list->handle == handle){
-        /* We only remove the head of this list */
-        handle_list_t *tmp = handle_list;
-        if (handle_list == tail){
-            /* We're removing the last element in the list */
-            handle_list = tail = NULL;
-        }else{
-            handle_list = handle_list->next;
-        }
-        free(tmp);
-        return 0;
+	/* We only remove the head of this list */
+	handle_list_t *tmp = handle_list;
+	if (handle_list == tail){
+	    /* We're removing the last element in the list */
+	    handle_list = tail = NULL;
+	}else{
+	    handle_list = handle_list->next;
+	}
+	free(tmp);
+	return 0;
     }    
     return -1;
 }
@@ -244,25 +242,25 @@ char *readlink_malloc (const char *filename)
 
     while (1)
     {
-        buffer = (char *) realloc (buffer, size);
-        int nchars = readlink (filename, buffer, size);
-        if (nchars < 0)
-        {
-            free (buffer);
-            return NULL;
-        }
-        if (nchars < size)
-        {
-            /* Readlink doesn't null terminate the string it sends back.
-               But a nice property of this is that if nchars == size you can't
-               tell if you read the whole thing so size ALWAYS has to be greater
-               this means you have a slot available to stash your null terminator.
+	buffer = (char *) realloc (buffer, size);
+	int nchars = readlink (filename, buffer, size);
+	if (nchars < 0)
+	{
+	    free (buffer);
+	    return NULL;
+	}
+	if (nchars < size)
+	{
+	    /* Readlink doesn't null terminate the string it sends back.
+	       But a nice property of this is that if nchars == size you can't
+	       tell if you read the whole thing so size ALWAYS has to be greater
+	       this means you have a slot available to stash your null terminator.
 
-               Hooray.             
-               */
-            buffer[nchars] = '\0';               
-            return buffer;
-        }
-        size *= 2;
+	       Hooray.             
+	       */
+	    buffer[nchars] = '\0';               
+	    return buffer;
+	}
+	size *= 2;
     }
 }

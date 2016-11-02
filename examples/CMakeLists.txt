@@ -21,8 +21,8 @@ if (TITAN)
 include_directories(${CMAKE_SOURCE_DIR}/libemulatebbapi)
 endif()
 
-target_link_libraries(test_static iointercept)
-target_link_libraries(test_mpi_static iointercept)
+target_link_libraries(test_static iointerceptstatic)
+target_link_libraries(test_mpi_static iointerceptstatic)
 
 if (TITAN)
 target_link_libraries(test_static emulate_bbapi)
