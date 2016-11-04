@@ -12,7 +12,7 @@ if(DEBUG)
   add_definitions(-DDEBUG)
   set(CMAKE_C_FLAGS "-g -Werror")
 else()
-  set(CMAKE_C_FLAGS "-g -O2 -Werror")
+  set(CMAKE_C_FLAGS "-g -O3 -Werror")
 endif()
 
 add_subdirectory(src)
