@@ -344,7 +344,7 @@ else
       NETCDF_LIB=${NETCDF}
     endif
     ifeq ($(SYSTEMS),pike)
-      NETCDF_LIB=-I/usr/local/include -L/usr/local/lib/ -lnetcdff
+      NETCDF_LIB=-I/usr/include -L/usr/lib/ -lnetcdff
     endif
 endif
 
