@@ -102,24 +102,24 @@ int main(int argc, char **argv){
 #ifdef TITAN
     spawn_bb_proxy();	    
 #endif
-    MPI_Init(&argc, & argv);
+    MPI_Init(&argc, &argv);
 
     //128K
     if (!simple_file_test(128)){
         perror("Failed simple_file_test validation");
     }
 
-    //128K
+    //256K
     if (!simple_file_test(256)){
         perror("Failed simple_file_test validation");
     }
 
-    //128K
+    //512K
     if (!simple_file_test(512)){
         perror("Failed simple_file_test validation");
     }
 
-    //128K
+    //1M
     if (!simple_file_test(1024)){
         perror("Failed simple_file_test validation");
     }

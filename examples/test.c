@@ -43,10 +43,10 @@ char *file_md5(char *filename){
  * size is rounded down
  */
 bool simple_file_test(uint32_t filesize){
-    char *srcdir = getenv("INTERCEPT_PERSIST_DIR");
-    char *destdir = getenv("INTERCEPT_PFS_DIR");
+    static uint32_t runcnt = 1;
+    char *srcdir = getenv("PERSIST_DIR");
+    char *destdir = getenv("PFS_DIR");
     char tfn[256];
-    char dfn[256];
     char cmd[256];
     /* 4K contiguous buffer in bytes */
     int buffer4k[1024];
@@ -59,8 +59,7 @@ bool simple_file_test(uint32_t filesize){
     /* Seed random num gen */
     srand(time(NULL));
 
-    snprintf(tfn,sizeof(tfn), "%s/testfile.%d.%d", srcdir,getpid(),filesize);
-    snprintf(dfn,sizeof(tfn), "%s/testfile.%d.%d", destdir,getpid(),filesize);
+    snprintf(tfn,sizeof(tfn), "%s/testfile.%d.%d.%d", srcdir,getpid(),filesize, runcnt++);
 
     if ((testfile = open(tfn, O_WRONLY | O_CREAT | O_TRUNC,
                     S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1)
