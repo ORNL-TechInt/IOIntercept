@@ -48,7 +48,7 @@
 #else
 
 #define REAL_DECL(func,ret,args) \
-    extern ret __real_ ## name args;
+    extern ret __real_ ## func args;
 
 #define WRAP_DECL(__name) __wrap_ ## __name
 
@@ -69,8 +69,13 @@ handle_list_t *handle_list;
 handle_list_t *tail;
 
 //Function Prototypes
-REAL_DECL(close, int, (int fd));
+REAL_DECL(close, int, (int fd))
 int WRAP_DECL(close)(int fd);
+
+REAL_DECL(fclose, int, (FILE *fp))
+int WRAP_DECL(fclose)(FILE *fp);
+
+
 char *readlink_malloc (const char *filename);
 void Intercept_ManageFiles();
 int Intercept_ExtractFilenames(int fd, char **, char **);
