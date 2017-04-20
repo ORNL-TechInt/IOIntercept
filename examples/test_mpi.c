@@ -17,9 +17,9 @@
 
 
 
-char *file_md5(char *filename){
+unsigned char *file_md5(char *filename){
     FILE *fptr = fopen(filename,"rb");
-    char *temp = (char *)malloc(sizeof(char) * MD5_DIGEST_LENGTH);
+    unsigned char *temp = (unsigned char *)malloc(sizeof(unsigned char) * MD5_DIGEST_LENGTH);
     MD5_CTX md5ctx;
     unsigned char data[1024];
     int bytes = 0;
@@ -77,8 +77,8 @@ bool simple_file_test(uint32_t filesize){
 
     sleep(3);
 
-    char *srcmd5 = file_md5(tfn);
-    char *destmd5 = file_md5(dfn);
+    unsigned char *srcmd5 = file_md5(tfn);
+    unsigned char *destmd5 = file_md5(dfn);
 
     for (int lcv = 0;lcv < MD5_DIGEST_LENGTH; lcv++){
         if (srcmd5[lcv] != destmd5[lcv])

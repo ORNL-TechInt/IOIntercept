@@ -1,72 +1,51 @@
+/*
+ *  * Copyright (c) 2011 UT-Battelle, LLC.  All rights reserved.
+ *  * Copyright (c) 2011 Oak Ridge National Labs.  All rights reserved.
+ *
+ */
 #include "libintercept.h"
 
+char *pfs_dir = NULL;
+char *persist_dir = NULL;
+handle_list_t *handle_list = NULL;
+handle_list_t *tail = NULL;
 
-/*
- * Functionality for checking the outcome of
- * bbapi functions. Because all c-applications want
- * json output. Gee Thanks.
- */
+
 int check(int rc)
 {
     if(rc)
     {
+#ifdef REPORT_IBM_ERROR_CODE
 	char* errstring;
 	BB_GetLastErrorDetails(BBERRORJSON, &errstring);
 	printf("Error rc:       %d\n", rc);
-	printf("Error details:  %s\n", errstring, errstring);
+	printf("Error details:  %s\n", errstring);
 	free(errstring);
 
 	printf("Aborting due to failures\n");
 	exit(-1);
+#endif
     }
+    return 0;
 }
 
-/*
- * fclose wrap function --
- * a lot of duplicated functionality -
- * Turn the file-pointer into a fileno
- * Then everything else can be done the same
- * except for the real aspect of the function
- *
- * Don't check fp for null value
- * Default fclose behavior is to segfault on
- * fclose(NULL). We will do the same.
- */
+/* Wrappers */
 int WRAP_DECL(fclose)(FILE *fp){
-    /* Convert file pointer to fd */
     int fd = fileno(fp);
     if (fd < 0){
 	fprintf(stderr, "Invalid file pointer\n");
 	return -1;
     }
 
-    /*
-     * general close handler
-     */ 
     return Intercept_HandleClose(true, fd, fp);
 }
 
-/*
- * close wrap function --
- * a lot of duplicated functionality -
- * Turn the file-pointer into a fileno
- * Then everything else can be done the same
- * except for the real aspect of the function
- */
 int WRAP_DECL(close)(int fd){
-    /*
-     * general close handler
-     */ 
     return Intercept_HandleClose(false, fd, NULL);
 }
 
-/*
- * Handle fclose or close
- * Determine real file name
- * Determine if it sits in persist dir
- * If so schedule it for transfer
- * Call real close file to clean up
- */
+
+/*  BBProxy File Handlers */
 int Intercept_HandleClose(bool streaming, int fd, FILE *fp)
 {
     static bool manage_files = false;
@@ -76,7 +55,8 @@ int Intercept_HandleClose(bool streaming, int fd, FILE *fp)
     bool early_term = false;
     int rc, ret = -1;
 
-    if (!early_term && !pfs_dir)
+
+    if (pfs_dir)
     {
 
 	pfs_dir = getenv(PFS_DIR);
@@ -99,14 +79,6 @@ int Intercept_HandleClose(bool streaming, int fd, FILE *fp)
     {
 	early_term = true;
     }
-
-    /*
-     * If linked dynamically there is no __real_close -- 
-     * We will create one and map it to the real close.
-     *
-     * Statically linked binaries have the __real_close if 
-     * linked with option -Wl,-wrap,close
-     */
 
     if (streaming){
 	MAP_OR_FAIL(fclose);
@@ -289,17 +261,6 @@ int Intercept_RemoveHandle(BBTransferHandle_t handle){
     return -1;
 }
 
-
-/*
- * Filename is the pointer to the fd in /proc/self/fd/<this fd>
- * This code extracts the full file-name path
- * https://buildsecurityin.us-cert.gov/bsi/articles/knowledge/coding/806-BSI.html
- *
- * We don't know the size of the filename. This code will find the right size buffer
- * to fit the full filename.
- *
- * The created buffer is free'd before leaving the intercepted close call
- */
 
 char *readlink_malloc (const char *filename)
 {

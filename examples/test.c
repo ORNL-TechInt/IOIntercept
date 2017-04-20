@@ -17,9 +17,9 @@
 
 
 
-char *file_md5(char *filename){
+unsigned char *file_md5(char *filename){
     FILE *fptr = fopen(filename,"rb");
-    char *temp = (char *)malloc(sizeof(char) * MD5_DIGEST_LENGTH);
+    unsigned char *temp = (unsigned char *)malloc(sizeof(unsigned char) * MD5_DIGEST_LENGTH);
     MD5_CTX md5ctx;
     unsigned char data[1024];
     int bytes = 0;
