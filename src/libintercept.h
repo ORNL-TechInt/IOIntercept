@@ -76,10 +76,11 @@ REAL_DECL(fclose, int, (FILE *fp))
 int WRAP_DECL(fclose)(FILE *fp);
 
 
-char *readlink_malloc (const char *filename);
 void Intercept_ManageFiles();
+int Intercept_HandleClose(bool streaming, int fd, FILE *fp);
 int Intercept_ExtractFilenames(int fd, char **, char **);
 void Intercept_StartTransfer(char *, char *);
 int Intercept_StoreHandle(BBTransferHandle_t, BBTransferDef_t *);
 int Intercept_RemoveHandle(BBTransferHandle_t);
+char *readlink_malloc (const char *filename);
 #endif

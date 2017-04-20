@@ -1,5 +1,5 @@
 # IOIntercept
-Repository for LIBIOINTERCEPT 
+Repository for LibSpectral 
 
 N:N Burst Buffer solution for applications that require very little modification.
 

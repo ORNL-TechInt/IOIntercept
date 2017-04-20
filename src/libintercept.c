@@ -33,86 +33,42 @@ int check(int rc)
  * fclose(NULL). We will do the same.
  */
 int WRAP_DECL(fclose)(FILE *fp){
-    static bool manage_files = false;
-    char *dest = NULL;
-    char *src = NULL; 
-    char *mf_env = NULL;
-    bool early_term = false;
-    int rc, ret = -1;
-
     /* Convert file pointer to fd */
     int fd = fileno(fp);
     if (fd < 0){
 	fprintf(stderr, "Invalid file pointer\n");
-	return ret;
-    }
-
-    if (!early_term && !pfs_dir)
-    {
-
-	pfs_dir = getenv(PFS_DIR);
-	persist_dir = getenv(PERSIST_DIR);
-	mf_env = getenv(MANAGE_FILES);
-
-	if (mf_env && strcmp(mf_env,"1") == 0){
-	    manage_files =  true;
-	}
-
-	if (!pfs_dir || !persist_dir)
-	{
-	    printf("Please set PFS_DIR and PERSIST_DIR. You will need to manually extract your files upon application termination\n");
-	    early_term = true;
-	}
-    }
-
-
-    if (Intercept_ExtractFilenames(fd, &src, &dest) < 0)
-    {
-	early_term = true;
-    }
-
-
-    /*
-     * If linked dynamically there is no __real_close -- 
-     * We will create one and map it to the real close.
-     *
-     * Statically linked binaries have the __real_close if 
-     * linked with option -Wl,-wrap,close
-     */
-    MAP_OR_FAIL(fclose);
-
-    /*
-     * Execute the real close
-     */
-    if ((ret = __real_fclose(fp)) != 0)
-    {
-	fprintf(stderr,"%s\n",strerror(errno));
-	return ret;
+	return -1;
     }
 
     /*
-     * If everything else worked cleanly
-     * invoke the BBAPI to transfer the files
-     * store the handle
-     */
-    if (!early_term)
-    {
-	Intercept_StartTransfer(src, dest);
-    } 
-
-    if (dest){
-	free(dest);
-    }
-
-    if (src){
-	free(src);
-    }
-
-    return ret;
+     * general close handler
+     */ 
+    return Intercept_HandleClose(true, fd, fp);
 }
 
+/*
+ * close wrap function --
+ * a lot of duplicated functionality -
+ * Turn the file-pointer into a fileno
+ * Then everything else can be done the same
+ * except for the real aspect of the function
+ */
 int WRAP_DECL(close)(int fd){
+    /*
+     * general close handler
+     */ 
+    return Intercept_HandleClose(false, fd, NULL);
+}
 
+/*
+ * Handle fclose or close
+ * Determine real file name
+ * Determine if it sits in persist dir
+ * If so schedule it for transfer
+ * Call real close file to clean up
+ */
+int Intercept_HandleClose(bool streaming, int fd, FILE *fp)
+{
     static bool manage_files = false;
     char *dest = NULL;
     char *src = NULL; 
@@ -151,15 +107,22 @@ int WRAP_DECL(close)(int fd){
      * Statically linked binaries have the __real_close if 
      * linked with option -Wl,-wrap,close
      */
-    MAP_OR_FAIL(close);
 
-    /*
-     * Execute the real close
-     */
-    if ((ret = __real_close(fd)) != 0)
-    {
-	fprintf(stderr,"%s\n",strerror(errno));
-	return ret;
+    if (streaming){
+	MAP_OR_FAIL(fclose);
+	if ((ret = __real_fclose(fp)) != 0)
+	{
+	    fprintf(stderr,"%s\n",strerror(errno));
+	    return ret;
+	}
+    }else {
+	MAP_OR_FAIL(close);
+	if ((ret = __real_close(fd)) != 0)
+	{
+	    fprintf(stderr,"%s\n",strerror(errno));
+	    return ret;
+	}
+
     }
 
     /*
@@ -171,7 +134,6 @@ int WRAP_DECL(close)(int fd){
 	Intercept_ManageFiles();
     }
 
-
     /*
      * If everything else worked cleanly
      * invoke the BBAPI to transfer the files
@@ -191,6 +153,7 @@ int WRAP_DECL(close)(int fd){
     }
 
     return ret;
+
 }
 
 void Intercept_ManageFiles(){
@@ -327,7 +290,16 @@ int Intercept_RemoveHandle(BBTransferHandle_t handle){
 }
 
 
-
+/*
+ * Filename is the pointer to the fd in /proc/self/fd/<this fd>
+ * This code extracts the full file-name path
+ * https://buildsecurityin.us-cert.gov/bsi/articles/knowledge/coding/806-BSI.html
+ *
+ * We don't know the size of the filename. This code will find the right size buffer
+ * to fit the full filename.
+ *
+ * The created buffer is free'd before leaving the intercepted close call
+ */
 
 char *readlink_malloc (const char *filename)
 {

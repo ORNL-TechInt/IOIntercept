@@ -6,12 +6,12 @@ include_directories(/opt/ibm)
 endif()
 
 #Dynamic Target
-add_library(iointercept SHARED libintercept.c)
-SET_TARGET_PROPERTIES(iointercept PROPERTIES COMPILE_DEFINITIONS "LIBINTERCEPT_PRELOAD")
-SET_TARGET_PROPERTIES(iointercept PROPERTIES LINK_FLAGS "-Wl,--rpath /opt/ibm/bb/lib -L/opt/ibm/bb/lib -lbbAPI")
+add_library(spectral SHARED libintercept.c)
+SET_TARGET_PROPERTIES(spectral PROPERTIES COMPILE_DEFINITIONS "LIBINTERCEPT_PRELOAD")
+SET_TARGET_PROPERTIES(spectral PROPERTIES LINK_FLAGS "-Wl,--rpath /opt/ibm/bb/lib -L/opt/ibm/bb/lib -lbbAPI")
 #Static Target
-add_library(iointerceptstatic libintercept.c)
-set_target_properties(iointerceptstatic PROPERTIES OUTPUT_NAME iointercept)
+add_library(spectralstatic libintercept.c)
+set_target_properties(spectralstatic PROPERTIES OUTPUT_NAME spectral)
 
-install(TARGETS iointercept DESTINATION lib)
-install(TARGETS iointerceptstatic DESTINATION lib)
+install(TARGETS spectral DESTINATION lib)
+install(TARGETS spectralstatic DESTINATION lib)

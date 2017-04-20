@@ -24,3 +24,4 @@ endif()
 
 add_subdirectory(examples)
 
+file(COPY test DESTINATION .)

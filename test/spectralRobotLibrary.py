@@ -88,7 +88,7 @@ class spectralRobotLibrary(object):
 	if ver == 'Static':
 	    command = ['./test_static',run_cnt]
 	else:
-	    command = ['env','LD_PRELOAD=../src/libiointercept.so','./test_dynamic',run_cnt]
+	    command = ['env','LD_PRELOAD=../src/libspectral.so','./test_dynamic',run_cnt]
 
 	process = subprocess.Popen(command, universal_newlines=True, stdout=subprocess.PIPE,
 	    			    stderr = subprocess.STDOUT)
