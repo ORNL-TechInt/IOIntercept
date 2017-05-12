@@ -18,7 +18,6 @@ endif()
 add_subdirectory(src)
 
 if (TITAN)
-add_subdirectory(libemulatebbapi)
 add_definitions(-DTITAN)
 endif()
 

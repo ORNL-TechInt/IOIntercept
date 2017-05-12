@@ -1,13 +1,11 @@
+#include "spectral.h"
 #define _GNU_SOURCE
-#include "bbapi.h"
-
+#include <sched.h>
 
 pthread_t *bb_proxy_thread;
 pthread_cond_t *cond;
 pthread_mutex_t *mutex;
 pthread_mutex_t *wqtex;
-_internal_work_queue_t *wqhead;
-_internal_work_queue_t *wqtail;
 bool sleeping = false;
 
 static void _mkdir(const char *dir) {
@@ -27,6 +25,7 @@ static void _mkdir(const char *dir) {
             mkdir(tmp, S_IRWXU);
             *p = '/';
         }
+    free(tmp);
 }
 
 void spawn_bb_proxy_(){
@@ -37,9 +36,6 @@ void spawn_bb_proxy(){
        bb_proxy_thread = (pthread_t *)malloc(sizeof(pthread_t)); 
        cond = (pthread_cond_t *)malloc(sizeof(pthread_cond_t));
        mutex = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t));
-       wqtex = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t));
-       wqhead = NULL;
-       wqtail = NULL;
 
        if (pthread_cond_init(cond,NULL) != 0){
            perror(strerror(errno));
@@ -51,10 +47,6 @@ void spawn_bb_proxy(){
            exit(-1);
        }
        
-       if (pthread_mutex_init(wqtex,NULL) != 0){
-           perror(strerror(errno));
-           exit(-1);
-       }
        pthread_create(bb_proxy_thread,NULL, bb_proxy_func, NULL); 
 }
 
@@ -66,7 +58,7 @@ void term_bb_proxy(){
     bool waiting_to_signal = true;
 
     //No other work items can come after this.
-    enqueue_work(1,1,NULL,NULL,NULL,true);
+    //enqueue_work(1,1,NULL,NULL,NULL,true);
 
     //We have to make sure this signal is caught by the other thread
     //To avoid an unflushed memfence we check the sleeping variable within
@@ -84,17 +76,33 @@ void term_bb_proxy(){
     pthread_join(*bb_proxy_thread, NULL);
     pthread_cond_destroy(cond);
     pthread_mutex_destroy(mutex);
-    pthread_mutex_destroy(wqtex);
 }
 
 void *bb_proxy_func(void *arg){
     bb_bind_cpu();
     bool term_signaled = false;
     struct timespec qtime = {1,0};
+    handle_list_t *wi;
 
     while (!term_signaled){
 
-        _internal_work_queue_t *wi = dequeue_work();
+        /* Need to dequeue some work here */
+        wi = NULL;
+
+        pthread_mutex_lock(wqtex);
+        handle_list_t *itr = globals.handle_list;
+        while (itr){
+            /* If we're here we're assuming everything needs to be transfered.
+             */
+            if (itr->fallbackstatus != TRANSFERRED){
+                //Work time
+                wi = itr;
+                break;
+            }
+
+            itr=itr->next;
+        }
+        pthread_mutex_unlock(wqtex);
 
         if (!wi){
             pthread_mutex_lock(mutex);
@@ -103,15 +111,21 @@ void *bb_proxy_func(void *arg){
             sleeping = false;
             pthread_mutex_unlock(mutex);
         }else{
-            if (wi->term_flag){
-                term_signaled = true;
-            }else{
-                char *src = wi->work_item->trans_list->src;
-                char *dest = wi->work_item->trans_list->dest;
-                move_file(src,dest);
-            }
+            /* TODO Recode to store in transfer definition */
+            /*char *src = wi->work_item->trans_list->src;
+              char *dest = wi->work_item->trans_list->dest;*/                       
+            char *src = NULL;
+            char *dest = NULL;
 
-            free(wi);
+            //Enqueued for emulation
+            if (wi->fallbackstatus == NEW){
+                src = ((transfer_list_t*)wi->xfer)->src;
+                dest = ((transfer_list_t*)wi->xfer)->dest;
+            }else{
+                //Enqueued for bbproxy
+            }            
+            move_file(src,dest);
+            wi->fallbackstatus = TRANSFERRED;
         }
     }
 
@@ -159,57 +173,36 @@ void move_file(char *src, char *dest){
 
            This is just testing code anyway.
            */
-        close(ofd);
+        //TODO Implement MAP OR DIE Functionality here to place the real
+        //close call into a function pointer and enable closing of the 
+        //ofd and ifd file descriptors.
+        MAP_OR_FAIL(close);
+        if (__real_close(ofd) != 0)
+        {
+            fprintf(stderr,"%s\n",strerror(errno));
+        }
+        
+        if (__real_close(ifd) != 0)
+        {
+            fprintf(stderr,"%s\n",strerror(errno));
+        }
+
     }else{
         perror("Failed to copy file\n");
     }
 }
 
 void bb_bind_cpu(){
-    cpu_set_t mask;
-    CPU_ZERO(&mask);
-    CPU_SET(15,&mask);
-    sched_setaffinity(0, sizeof(cpu_set_t), &mask);
+//    cpu_set_t mask;
+    //CPU_ZERO(&mask);
+//    CPU_SET(15,&mask);
+//    sched_setaffinity(0, sizeof(cpu_set_t), &mask);
 }
 
-
-_internal_work_queue_t* dequeue_work(){
-    _internal_work_queue_t *ptr = NULL;
-    pthread_mutex_lock(wqtex);
-    if (wqhead){
-        ptr = wqhead;
-        wqhead = (_internal_work_queue_t *)wqhead->next;
-    }
-    pthread_mutex_unlock(wqtex);
-    return ptr;
-}
-
-int enqueue_work(uint64_t tag, uint32_t num_contrib, uint32_t *contrib, BBTransferDef_t *xfer, BBTransferHandle_t *handle, int term_flag){
-    //Slow and ugly... this is in the emulated BBAPI so.. who cares this wont' be in the production code
-    pthread_mutex_lock(wqtex);
-    if (wqhead == NULL){
-        wqhead = (_internal_work_queue_t *)malloc(sizeof(_internal_work_queue_t));
-        wqhead->work_item = xfer;
-        wqhead->work_handle = handle;
-        wqhead->term_flag = term_flag;
-        wqhead->next = NULL;        
-        wqtail = wqhead;
-    }else{
-        /* We always grow at the head and pull from the tail
-        */
-        _internal_work_queue_t *temp = malloc(sizeof(_internal_work_queue_t));
-        temp->work_item = xfer;
-        temp->work_handle = handle;
-        temp->term_flag = term_flag;
-        temp->next = NULL;
-        wqtail->next = (struct _internal_work_queue_t *)temp;
-        wqtail = temp;
-    } 
-    pthread_mutex_unlock(wqtex);
+void signal_proxy_thread(){
     pthread_cond_signal(cond);
+}
+
+/*int BB_GetLastErrorDetails(BBERRORFORMAT format, char **errstring){
     return 0;
-}
-
-int BB_GetLastErrorDetails(BBERRORFORMAT format, char **errstring){
-
-}
+}*/
