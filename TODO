@@ -1,0 +1,7 @@
+Implement function pointer calls for BB Targets that can be reconfigured
+
+Need to determine a better way to create a tag that will reduce overlap
+
+Make sure return codes are all consistent
+
+Develop state machine for fall back mechanisms

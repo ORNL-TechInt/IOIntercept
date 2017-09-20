@@ -1,0 +1,5 @@
+Base execution model is BBProxy based.
+
+If any BBProxy calls fail or any handles fail
+
+- Spectral will fallback to a synchronous copy model using a pthread to copy things out.

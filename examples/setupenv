@@ -1,0 +1,11 @@
+#!/bin/bash
+
+export PFS_DIR=/tmp/pfs
+export PERSIST_DIR=/tmp/persist
+
+mkdir -p $PFS_DIR
+mkdir -p $PERSIST_DIR
+
+export MANAGE_FILES=1
+
+
