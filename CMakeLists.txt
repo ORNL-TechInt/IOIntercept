@@ -5,7 +5,6 @@ cmake_minimum_required(VERSION 2.6)
 option(DEBUG "Use debugging symbols" OFF)
 option(TITAN "Build for titan emulation" OFF)
 
-
 set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)
 
 if(DEBUG)

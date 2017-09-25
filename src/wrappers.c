@@ -13,9 +13,9 @@ int WRAP_DECL(fclose)(FILE *fp){
         return -1;
     }
 
-    if (spectral_setuptransfer(fd, &src, &dest) == FAILURE){
+    if (spectral_setuptransfer(fd, &src, &dest) == FAILURE)
         cancel = true;
-    }
+   
     
     MAP_OR_FAIL(fclose);
     if ((ret = __real_fclose(fp)) != 0)
@@ -48,6 +48,7 @@ int WRAP_DECL(close)(int fd){
 
     if (!cancel)
         spectral_starttransfer(src,dest);
+    
     return ret;
 }
 

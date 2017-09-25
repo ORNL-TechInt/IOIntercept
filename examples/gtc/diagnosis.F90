@@ -104,19 +104,19 @@ subroutine diagnosis
            write(iodiag,102)fieldmode(1,j,i),fieldmode(2,j,i)
         enddo
      enddo
-     call FLUSH(iodiag)
+!     call FLUSH(iodiag)
 
 ! write radial-time data to data1d.out
      write(iodata1d,102)data1di
      if(nspecies>1)write(iodata1d,102)data1de
      write(iodata1d,102)field00
      write(iodata1d,102)fieldrms
-     call FLUSH(iodata1d)
+!     call FLUSH(iodata1d)
 
 ! monitor: rms of phi, apara, fluidne, heatflux of ion & electron
      write(gtcout,"(I5,6e15.6)")istep+mstepall,(fieldtime(4,i),i=1,nfield),&
           (partdata(9,i),i=1,nspecies)
-     call FLUSH(gtcout)
+!     call FLUSH(gtcout)
   endif
 
 101 format(i6)

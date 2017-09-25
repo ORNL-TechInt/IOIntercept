@@ -23,7 +23,7 @@ int EM_CreateTransferDef(BBTransferDef_t **xfer){
 
 int EM_AddFiles(BBTransferDef_t *xfer, const char *src, const char *dest, BBFILEFLAGS flags){
     ((transfer_list_t *)xfer)->src = (char *)malloc(strlen(src) + 1);
-    ((transfer_list_t *)xfer)->dest = (char *)malloc(strlen(src) + 1);
+    ((transfer_list_t *)xfer)->dest = (char *)malloc(strlen(dest) + 1);
     strcpy(((transfer_list_t *)xfer)->src,src);
     strcpy(((transfer_list_t *)xfer)->dest,dest);
     return 0;

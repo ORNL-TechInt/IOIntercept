@@ -70,7 +70,7 @@ Subroutine setup
      mtheta0=mtheta(0)
      mtheta1=mtheta(mpsi)
      write(gtcout,key_parameters)
-     call FLUSH(gtcout)
+!     call FLUSH(gtcout)
   endif
 
 end subroutine setup

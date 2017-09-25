@@ -6,21 +6,21 @@
 #include "spectral.h"
 
 /* Global Variables */
-spectral_globals_t globals;
+spectral_globals_t globals = {false,false, NULL, NULL, NULL, NULL};
+
 /* Init */
-int spectral_init(bool* manage_files){
+int spectral_init(){
     static uint32_t pid = 0;
-    int rc;
-    char *mf_env = getenv(MANAGE_FILES);
-    globals.pfs_dir = getenv(PFS_DIR);
-    globals.persist_dir = getenv(PERSIST_DIR);
+    int rc = FAILURE;
+
+    //Invariant - either bbProxy or Pthread Model will start
+    globals.initialized = true;
 
     wqtex = (pthread_mutex_t*)malloc(sizeof(pthread_mutex_t));
     if (pthread_mutex_init(wqtex,NULL) != 0){
         perror(strerror(errno));
         exit(-1);
     }
-
 
     if (pid == 0){
         pid = getpid();
@@ -41,10 +41,6 @@ int spectral_init(bool* manage_files){
         }
     }
 
-    if (mf_env && strcmp(mf_env,"1") == 0){
-        *manage_files =  true;
-    }
-
     if (!globals.pfs_dir || !globals.persist_dir)
     {
         printf("Please set PFS_DIR and PERSIST_DIR. You will need to manually\
@@ -58,19 +54,13 @@ int spectral_init(bool* manage_files){
 /*  BBProxy File Handlers */
 int spectral_setuptransfer(int fd, char **src, char **dest)
 {
-    static bool manage_files = false;
     char *mf_env = NULL;
-    bool early_term = false;
     int rc, ret = SUCCESS;
 
-    /* Init */
-    if (globals.pfs_dir == NULL)
-    {
-        rc = spectral_init(&manage_files);
-        /* Unable to transmit just close the file and return */
-        if (rc == FAILURE){
-            early_term = true;
-        }
+    if (globals.pfs_dir == NULL){
+    globals.manage_files = getenv(MANAGE_FILES);
+    globals.pfs_dir = getenv(PFS_DIR);
+    globals.persist_dir = getenv(PERSIST_DIR);
     }
 
     /* Extract filenames */
@@ -79,13 +69,14 @@ int spectral_setuptransfer(int fd, char **src, char **dest)
         return FAILURE;
     }
 
-    /*
-     * Real file has been closed 
-     * Clean up previously transmitted files
-     */
-    if (manage_files)
+    /* Init */
+    if (globals.initialized == false && globals.transfermode == SPECUNINIT)
     {
-        spectral_managefiles();
+        rc = spectral_init();
+        /* Unable to transmit just close the file and return */
+        if (rc == FAILURE){
+            return FAILURE;
+        }
     }
 
     return ret;
@@ -102,6 +93,7 @@ void spectral_starttransfer(char *src, char *dest){
 
     int tag = (pid << 16) | (tagctr++);
 
+    //Setup Setup Transfer
     rc = globals.bbfuncs.gettransferhandle(tag, 0, NULL, &handle);
     check(rc);
 
@@ -114,11 +106,20 @@ void spectral_starttransfer(char *src, char *dest){
     rc = globals.bbfuncs.starttransfer(xfer, handle);
     check(rc);
 
+    //Store copy of the handler for emulation if it's not available.
     EM_CreateTransferDef(&emxfer);
     EM_AddFiles(emxfer,src,dest,0);
 
     spectral_storehandle(handle,xfer,emxfer);
 
+    /*
+     * Real file has been closed 
+     * Clean up previously transmitted files
+     */
+    if (globals.manage_files)
+    {
+        spectral_managefiles();
+    }
 
     if (dest){
         free(dest);
@@ -170,8 +171,6 @@ int spectral_extractfilenames(int fd, char **src, char **dest){
             /* Your path must write to the persist dir directly
              * right now won't work if it doesn't start with /ssd/persist/ it won't
              * get written */
-            printf("%s %s %d\n",globals.persist_dir,*src,strncmp(globals.persist_dir,*src,strlen(globals.persist_dir)));
-            fflush(stdout);
             if (strncmp(globals.persist_dir,*src,strlen(globals.persist_dir)) == 0)
             {
                 //Grab portion that's not the ssd persist stuff

@@ -143,11 +143,12 @@ endif
 ifeq ($(os),Linux)
   # Flags for the Linux system
   # Default compiler and options: Lahey-Fujitsu compiler
-    CMP:=mpif90
+    CMP:=mpifort
     F90C:=pgf95
 
     ##OPT:=-O --ap --tpp --ntrace --staticlink -I/usr/local/lff95/include
-    OPT:=-O --ap --pca --trace
+    OPT:=-O `pkg-config netcdf-fortran --cflags` 
+	LIB:=`pkg-config netcdf-fortran --libs`
   ifeq ($(PGI),y)
     MPIMODULE:=/usr/pppl/pgi/5.2-1/mpich-1.2.6/include/f90base
     F90C:=pgf90

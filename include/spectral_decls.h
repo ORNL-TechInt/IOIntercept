@@ -46,6 +46,7 @@
 
 enum SPECTRALTRANSFLAGS
 {
+    SPECUNINIT                 = 0x0000,
     SPECEMULATION              = 0x0001, //Emulation based transfer
     SPECBBPROXY                = 0x0002  //BBProxy based transfer
 };
@@ -88,6 +89,8 @@ typedef struct {
 
 typedef struct{
     //Global variables
+    bool initialized;
+    bool manage_files;
     char *pfs_dir;
     char *persist_dir;
     handle_list_t *handle_list;
