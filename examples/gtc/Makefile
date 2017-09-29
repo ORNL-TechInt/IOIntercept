@@ -187,7 +187,8 @@ ifeq ($(os),Linux)
   endif
 
   ifeq ($(SYSTEMS),pike)
-    OPT:=-ffree-line-length-none
+    OPT:=-ffree-line-length-none -I/usr/local/include
+    LIB:=-L/usr/local/lib/
   endif
 
   ifeq ($(INTEL),y)

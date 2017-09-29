@@ -9,30 +9,12 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdint.h>
-#include <openssl/md5.h>
 
 #ifdef TITAN
 #include "bbapi.h"
 #endif
 
 
-
-unsigned char *file_md5(char *filename){
-    FILE *fptr = fopen(filename,"rb");
-    unsigned char *temp = (unsigned char *)malloc(sizeof(unsigned char) * MD5_DIGEST_LENGTH);
-    MD5_CTX md5ctx;
-    unsigned char data[1024];
-    int bytes = 0;
-
-    if (fptr != NULL){
-        MD5_Init(&md5ctx);
-        while ((bytes = fread(data, 1, 1024, fptr)) != 0){
-            MD5_Update(&md5ctx,data,bytes);
-        }
-        MD5_Final(temp, &md5ctx);
-    }
-    return temp;
-}
 
 /* Persist File
  * Intercept and drain
@@ -76,23 +58,6 @@ bool simple_file_test(uint32_t filesize){
     close(testfile);
 
     sleep(3);
-
-    unsigned char *srcmd5 = file_md5(tfn);
-    unsigned char *destmd5 = file_md5(dfn);
-
-    for (int lcv = 0;lcv < MD5_DIGEST_LENGTH; lcv++){
-        if (srcmd5[lcv] != destmd5[lcv])
-        {
-            return false;
-        }
-    }
-
-    if (srcmd5)
-        free(srcmd5);
-
-    if (destmd5)
-        free(destmd5);
-
 
     return true;
 }

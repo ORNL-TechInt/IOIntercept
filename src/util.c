@@ -5,7 +5,7 @@ int check(int rc)
     if(rc)
     {
         char* errstring = 0;
-        getLastErrorDetails(BBERRORJSON, &errstring);
+        //getLastErrorDetails(BBERRORJSON, &errstring);
         printf("Error rc:       %d\n", rc);
         printf("Error details:  %s\n", errstring);
         free(errstring);
